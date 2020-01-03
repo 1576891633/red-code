@@ -1,0 +1,49 @@
+spring:
+  datasource:
+    dynamic:
+      # 是否开启 SQL日志输出，生产环境建议关闭，有性能损耗
+      p6spy: true
+      hikari:
+        connection-timeout: 30000
+        max-lifetime: 1800000
+        max-pool-size: 15
+        min-idle: 5
+        connection-test-query: select 1
+        pool-name: FebsHikariCP
+      # 配置默认数据源
+      primary: localDS_base
+      datasource:
+        # 数据源-1，名称为 base
+        localDS_base:
+          username: redbag_temanyish
+          password: T4FNWB844haSR6S2
+#          username: root
+#          password: BcCwLnqOXt5rGiro
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: jdbc:mysql://47.112.38.218:3306/redbag_temanyish?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2b8
+#          url: jdbc:mysql://120.25.123.181:33166/finance-house?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2b8
+  redis:
+    # Redis数据库索引（默认为 0）
+    database: 0
+    # Redis服务器地址
+    host: 127.0.0.1
+    # Redis服务器连接端口
+    port: 6379
+    # Redis 密码
+    password: foobared123
+    jedis:
+      pool:
+        # 连接池中的最小空闲连接
+        min-idle: 5
+        # 连接池中的最大空闲连接
+        max-idle: 15
+        # 连接池最大连接数（使用负值表示没有限制）
+        max-active: 2000
+        # 连接池最大阻塞等待时间（使用负值表示没有限制）
+        max-wait: 5000
+    # 连接超时时间（毫秒）
+    timeout: 0
+
+logging:
+  level:
+    com.ky.game.common.handler: debug

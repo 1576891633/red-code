@@ -1,0 +1,70 @@
+<style>
+    #febs-user-detail #user-img, #febs-user-detail .user-info {
+        display: inline-block;
+        float: left;
+        margin-left: 15px;
+    }
+
+    #febs-user-detail #user-img img {
+        width: 9rem;
+        margin: 15px 15px 0 20px;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+    #febs-user-detail #user-info-wrapper {
+        margin: 0 0 1rem 0;
+        display: inline-block;
+    }
+
+    #febs-user-detail .user-info div {
+        margin: 10px 15px;
+        max-width: 19rem;
+    }
+
+    #febs-user-detail #options-wrapper a {
+        padding: 5px 7px;
+        color: rgba(0, 0, 0, 0.65);
+        border: 1px solid #d9d9d9;
+        border-radius: 2px;
+    }
+
+    #febs-user-detail #options-wrapper a:hover {
+        color: #40a9ff;
+        border-color: #40a9ff;
+    }
+
+</style>
+<div class="layui-fluid" id="febs-user-detail" lay-title="个人信息">
+    <div id="user-info-wrapper">
+        <div class="user-info">
+            <div><span class="layui-icon layui-icon-user"></span> 用户名称：
+                [[${order.userName}]]
+            </div>
+            <div><span class="layui-icon layui-icon-trophy"></span> openId：
+                [[${order.openId}]]
+            </div>
+            <div><span class="layui-icon layui-icon-home"></span> 二维码ID：
+                [[${order.codeId}]]
+            </div>
+            <div><span class="layui-icon layui-icon-phone"></span> 商户订单号：
+                [[${order.partnerTradeNo}]]
+            </div>
+            <div><span class="layui-icon layui-icon-skin"></span> 奖金：
+                [[${order.reward}]]
+            </div>
+            <div><span class="layui-icon layui-icon-mail"></span> 审核状态：
+                [[${order.checkStatus}]]
+            </div>
+            <div><span class="layui-icon layui-icon-time-circle"></span> 审核说明：
+                [[${order.checkDesc}]]
+            </div>
+            <div><span class="layui-icon layui-icon-read"></span> 作品简介：
+                [[${#strings.defaultString(order.describes,'暂无作品简介')}]]
+            </div>
+        </div>
+        <!--<div class="user-info">-->
+            <!---->
+        <!--</div>-->
+    </div>
+</div>

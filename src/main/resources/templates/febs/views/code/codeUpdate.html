@@ -1,0 +1,164 @@
+<style>
+    #user-update {
+        padding: 20px 25px 25px 0;
+    }
+
+    #user-update .layui-treeSelect .ztree li a, .ztree li span {
+        margin: 0 0 2px 3px !important;
+    }
+
+    .layui-upload-img {
+        cursor: pointer;
+        width: 100px;
+        height: 100px;
+        color: sienna;
+    }
+</style>
+<div class="layui-fluid" id="user-update">
+    <form class="layui-form" action="" lay-filter="user-update-form">
+        <div class="layui-form-item febs-hide">
+            <label class="layui-form-label febs-form-item-require">id：</label>
+            <div class="layui-input-block">
+                <input type="text" name="id" data-th-value="${code.id}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label febs-form-item-require">二维码名：</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" lay-verify="name"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-col-md6 layui-col-sm12">
+                <label class="layui-form-label">封面：</label>
+                <div class="layui-show-md-block">
+                    <div class="layui-upload-list">
+                        <input name="url" id="url" type="hidden">
+                        <img class="layui-upload-img" id="test1">
+                        <label id="demoText"></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">奖金：</label>
+            <div class="layui-input-block">
+                <input type="number" name="reward" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">属性：</label>
+            <div class="layui-input-block">
+                <input type="property" name="property" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">内容：</label>
+            <div class="layui-input-block">
+                <textarea name="content" id="content" lay-verify="content" style="display: none;" class="layui-textarea"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item febs-hide">
+            <button class="layui-btn" lay-submit="" lay-filter="user-update-form-submit" id="submit"></button>
+        </div>
+    </form>
+</div>
+
+<script data-th-inline="javascript">
+    layui.use(['febs', 'form', 'formSelects', 'validate', 'treeSelect', 'upload', 'layedit'], function () {
+        var $ = layui.$,
+            febs = layui.febs,
+            upload = layui.upload,
+            layer = layui.layer,
+            formSelects = layui.formSelects,
+            layedit = layui.layedit,
+            form = layui.form,
+            code = [[${code}]],
+            $view = $('#user-update'),
+            validate = layui.validate;
+
+            layedit.set({
+                uploadImage: {
+                    url: 'upload/editor',
+                    type: 'post'
+                }
+            });
+
+        var indexs = layedit.build('content');
+        layedit.setContent(indexs,code.content);
+
+        form.verify(validate);
+        form.render();
+
+        initUserValue();
+
+        formSelects.render();
+
+        function initUserValue() {
+            form.val("user-update-form", {
+                "name": code.name,
+                "url": code.url,
+                "reward": code.reward,
+                "property": code.property,
+                "number": code.number,
+                "content": code.content
+            });
+            if (code.url) {
+                $('#test1').attr('src', '/download/image/' + code.url);
+            }
+
+        }
+
+        //自定义验证规则
+        form.verify({
+            content: function(value) {
+                layedit.sync(indexs);
+            }
+        });
+
+        form.on('submit(user-update-form-submit)', function (data) {
+            if (febs.nativeEqual(data.field, code)) {
+                febs.alert.warn('数据未作任何修改！');
+                return false;
+            }
+            febs.post(ctx + 'code/update', data.field, function () {
+                layer.closeAll();
+                febs.alert.success(code.name + ' 二维码数据修改成功');
+                $('#febs-user').find('#query').click();
+            });
+            return false;
+        });
+        //普通图片上传
+        var uploadInst = upload.render({
+            elem: '#test1',
+            url: '/upload/',
+            acceptMime: 'image/*',
+            size: 3 * 1024,
+            before: function (obj) {
+                //预读本地文件示例，不支持ie8
+                obj.preview(function (index, file, result) {
+                });
+            },
+            done: function (res) {
+                //如果上传失败
+                if (res.code === 200) {
+                    $('#url').val(res.data);
+                    $('#test1').attr('src', '/download/image/' + res.data);
+                    return layer.msg('上传成功');
+                } else {
+                    return layer.msg('上传失败');
+                }
+                //上传成功
+            },
+            error: function () {
+                //演示失败状态，并实现重传
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+                demoText.find('.demo-reload').on('click', function () {
+                    uploadInst.upload();
+                });
+            }
+        });
+    });
+</script>

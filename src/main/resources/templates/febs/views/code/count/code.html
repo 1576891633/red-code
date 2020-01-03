@@ -1,0 +1,120 @@
+<div class="layui-fluid layui-anim febs-anim" id="febs-user" lay-title="二维码统计">
+    <div class="layui-row febs-container">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body febs-table-full">
+                    <form class="layui-form layui-table-form" lay-filter="user-table-form">
+                        <div class="layui-row">
+                            <div class="layui-col-md10">
+                                <div class="layui-form-item">
+                                    <div class="layui-inline">
+                                        <label class="layui-form-label layui-form-label-sm">创建时间</label>
+                                        <div class="layui-input-inline">
+                                            <input type="text" name="createTime" id="createTime" class="layui-input">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md2 layui-col-sm12 layui-col-xs12 table-action-area">
+                                <div class="layui-btn layui-btn-sm layui-btn-primary table-action" id="query">
+                                    <i class="layui-icon">&#xe848;</i>
+                                </div>
+                                <div class="layui-btn layui-btn-sm layui-btn-primary table-action" id="reset">
+                                    <i class="layui-icon">&#xe79b;</i>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <table lay-filter="userTable" lay-data="{id: 'userTable'}"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script data-th-inline="none" type="text/javascript">
+    layui.use(['dropdown', 'jquery', 'laydate', 'form', 'table', 'febs', 'treeSelect'], function () {
+        var $ = layui.jquery,
+            laydate = layui.laydate,
+            febs = layui.febs,
+            form = layui.form,
+            table = layui.table,
+            treeSelect = layui.treeSelect,
+            $view = $('#febs-user'),
+            $query = $view.find('#query'),
+            $reset = $view.find('#reset'),
+            $searchForm = $view.find('form'),
+            sortObject = {field: 'createTime', type: null},
+            tableIns;
+
+        form.render();
+
+        initTable();
+
+        laydate.render({
+            elem: '#createTime',
+            range: true,
+            trigger: 'click'
+        });
+
+        treeSelect.render({
+            elem: $view.find('#dept'),
+            type: 'get',
+            data: ctx + 'dept/select/tree',
+            placeholder: '请选择',
+            search: false
+        });
+
+        table.on('sort(userTable)', function (obj) {
+            sortObject = obj;
+            tableIns.reload({
+                page: false,
+                initSort: obj,
+                where: $.extend(getQueryParams(), {
+                    field: obj.field,
+                    order: obj.type
+                })
+            });
+        });
+
+        $query.on('click', function () {
+            var params = $.extend(getQueryParams(), {field: sortObject.field, order: sortObject.type});
+            tableIns.reload({where: params});
+        });
+
+        $reset.on('click', function () {
+            $searchForm[0].reset();
+            // treeSelect.revokeNode('dept');
+            sortObject.type = 'null';
+            tableIns.reload({where: getQueryParams(), initSort: sortObject});
+        });
+
+        function initTable() {
+            tableIns = febs.table.init({
+                page: false,
+                elem: $view.find('table'),
+                id: 'userTable',
+                url: ctx + 'code/count/list',
+                cols: [[
+                    {field: 'giveOut', title: '发放数量'},
+                    {field: 'receive', title: '领取金额'}
+                ]]
+            });
+        }
+
+        function getQueryParams() {
+            var createTimeFrom = null,
+                createTimeTo = null,
+                createTime = $searchForm.find('input[name="createTime"]').val();
+            if (createTime) {
+                createTimeFrom = createTime.split(' - ')[0];
+                createTimeTo = createTime.split(' - ')[1];
+            }
+            return {
+                createTimeFrom: createTimeFrom,
+                createTimeTo: createTimeTo,
+                invalidate_ie_cache: new Date()
+            };
+        }
+    })
+</script>

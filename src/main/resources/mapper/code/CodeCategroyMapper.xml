@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cc.mrbird.febs.code.mapper.CategroyCodeMapper">
+
+    <select id="findCodeList" parameterType="cc.mrbird.febs.code.entity.CodeCategroy" resultType="cc.mrbird.febs.code.entity.CodeCategroy">
+        SELECT
+        u.id,
+        u.create_date createDate,
+        u.reward,
+        u.name,
+        u.content,
+        u.number,
+        u.property,
+        u.url,
+        c.status,
+        count(*) printNumber
+        FROM
+        t_code_categroy u
+        left join t_two_code c on u.id = c.categroy_id and c.`status` = 0
+        <where>
+            <if test="code.name != null and code.name != ''">
+                AND u.name = #{code.name}
+            </if>
+            <if test="code.createTimeFrom != null and code.createTimeFrom !=''">
+                And date(u.create_date) &gt;= date(#{code.createTimeFrom})
+            </if>
+            <if test="code.createTimeTo!= null and code.createTimeTo !=''">
+                And date(u.create_date) &lt;= date(#{code.createTimeTo})
+            </if>
+        </where>
+        group by u.id
+        order by u.create_date desc
+    </select>
+
+    <select id="findCategroyCode" parameterType="String" resultType="cc.mrbird.febs.wx.response.CodeResponse">
+        SELECT
+        u.id,
+        u.create_date createDate,
+        u.reward,
+        u.name,
+        u.content,
+        u.number,
+        u.property,
+        u.url,
+        c.id cId,
+        c.status
+        FROM
+        t_two_code c
+        left join t_code_categroy u on u.id = c.categroy_id
+        where c.id = #{cId}
+    </select>
+
+</mapper>

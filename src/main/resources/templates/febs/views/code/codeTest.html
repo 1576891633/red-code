@@ -1,0 +1,391 @@
+<div class="layui-fluid layui-anim febs-anim" id="febs-user" lay-title="二维码管理">
+    <div class="layui-row febs-container">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body febs-table-full">
+                    <form class="layui-form layui-table-form" lay-filter="user-table-form">
+                        <div class="layui-row">
+                            <div class="layui-col-md10">
+                                <div class="layui-form-item">
+                                    <div class="layui-inline">
+                                        <label class="layui-form-label layui-form-label-sm">二维码名</label>
+                                        <div class="layui-input-inline">
+                                            <input type="text" name="name" autocomplete="off" class="layui-input">
+                                        </div>
+                                    </div>
+                                    <div class="layui-inline">
+                                        <label class="layui-form-label layui-form-label-sm">创建时间</label>
+                                        <div class="layui-input-inline">
+                                            <input type="text" name="createTime" id="createTime" class="layui-input">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md2 layui-col-sm12 layui-col-xs12 table-action-area">
+                                <div class="layui-btn layui-btn-sm layui-btn-primary table-action" id="query">
+                                    <i class="layui-icon">&#xe848;</i>
+                                </div>
+                                <div class="layui-btn layui-btn-sm layui-btn-primary table-action" id="reset">
+                                    <i class="layui-icon">&#xe79b;</i>
+                                </div>
+                                <div class="layui-btn layui-btn-sm layui-btn-primary table-action" id="add">
+                                    <i class="layui-icon">&#xe654;</i>
+                                </div>
+                                <div class="layui-btn layui-btn-sm layui-btn-primary table-action action-more"
+                                     shiro:hasAnyPermissions="code:add,code:update,code:password:reset,code:export">
+                                    <i class="layui-icon">&#xe875;</i>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <table lay-filter="userTable" lay-data="{id: 'userTable'}"></table>
+                    <div id="qrcode">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="febs-hide" id="recordDetailModal">
+    <div class="febs-table-full">
+        <table lay-filter="recordDetailTable" id="recordDetailTable"></table>
+    </div>
+</div>
+<script type="text/html" id="code-status">
+    {{#
+    var status = {
+    1: {title: '无效', color: 'volcano'},
+    0: {title: '有效', color: 'green'}
+    }[d.status];
+    }}
+    <span class="layui-badge febs-tag-{{status.color}}">{{ status.title }}</span>
+</script>
+<!--<script src="/static/febs/lay/modules/qrcode.js"></script>-->
+<script type="text/html" id="user-option">
+    <span shiro:lacksPermission="code:view,code:update,code:delete">
+        <span class="layui-badge-dot febs-bg-orange"></span> 无权限
+    </span>
+    <a lay-event="detail" shiro:hasPermission="code:view"><i
+            class="layui-icon febs-edit-area febs-green">&#xe7a5;</i></a>
+    <a lay-event="edit" shiro:hasPermission="code:update"><i
+            class="layui-icon febs-edit-area febs-blue">&#xe7a4;</i></a>
+    <a lay-event="del" shiro:hasPermission="code:delete"><i class="layui-icon febs-edit-area febs-red">&#xe7f9;</i></a>
+</script>
+<script data-th-inline="none" type="text/javascript">
+    layui.use(['dropdown', 'jquery', 'laydate', 'form', 'table', 'febs', 'treeSelect','qprint'], function () {
+        var $ = layui.jquery,
+            laydate = layui.laydate,
+            febs = layui.febs,
+            form = layui.form,
+            table = layui.table,
+            treeSelect = layui.treeSelect,
+            jqprint = layui.qprint,
+            dropdown = layui.dropdown,
+            $view = $('#febs-user'),
+            $query = $view.find('#query'),
+            $reset = $view.find('#reset'),
+            $add = $view.find('#add'),
+            $searchForm = $view.find('form'),
+            sortObject = {field: 'createTime', type: null},
+            tableIns;
+
+        form.render();
+
+        initTable();
+
+        for (var i = 0; i < 10; i++) {
+            debugger
+            $("#qrcode").append("<div style=page-break-after:always>woshi dddee<br/><img id='x" + i + "' width='120px;' src='' /><div id='" + i + "'></div> </div>");///必须加一个image，不加在打印的时候没值。不相信可以将PrintArticle隐藏的部分放开，然后将打印的隐藏掉。
+            // $('#' + i).qrcode(utf16to8(i.toString() +"中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人中国人"));
+            // var img = document.getElementById("x" + i.toString()); /// get image element
+            // var canvas = document.getElementsByTagName("canvas")[i];  /// get canvas element
+            // canvas.style="display:none";///将生成的隐藏起来。
+            // img.src = canvas.toDataURL();                     /// update image
+        }
+        function utf16to8(str) {
+            var out, i, len, c;
+            out = "";
+            len = str.length;
+            for (i = 0; i < len; i++) {
+                c = str.charCodeAt(i);
+                if ((c >= 0x0001) && (c <= 0x007F)) {
+                    out += str.charAt(i);
+                } else if (c > 0x07FF) {
+                    out += String.fromCharCode(0xE0 | ((c >> 12) & 0x0F));
+                    out += String.fromCharCode(0x80 | ((c >> 6) & 0x3F));
+                    out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+                } else {
+                    out += String.fromCharCode(0xC0 | ((c >> 6) & 0x1F));
+                    out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+                }
+            }
+            return out;
+        }
+
+
+        function PrintArticle() {
+            $("#qrcode").jqprint.jqprint({
+                debug:false,
+                importCSS:true,
+                printContainer:true,
+                operaSupport:false
+            });
+            return false;
+        }
+
+        laydate.render({
+            elem: '#createTime',
+            range: true,
+            trigger: 'click'
+        });
+        dropdown.render({
+            elem: $view.find('.action-more'),
+            click: function (name, elem, event) {
+                var checkStatus = table.checkStatus('userTable');
+                if (name === 'print') {
+                    // febs.modal.open('批量打印二维码', 'code/print', {
+                    //     btn: ['提交', '重置'],
+                    //     area: $(window).width() <= 750 ? ['90%', '80%'] : ['60%', '80%'],
+                    //     yes: function (index, layero) {
+                    //         $('#user-add').find('#submit').trigger('click');
+                    //     },
+                    //     btn2: function () {
+                    //         $('#user-add').find('#reset').trigger('click');
+                    //         return false;
+                    //     }
+                    // });
+                    if (checkStatus.data.length != 1) {
+                        febs.alert.warn("请选择一条需要打印的商品")
+                    } else {
+                        $.ajax({
+                            type: "GET",
+                            url: ctx + 'code/two/list',
+                            data: {id:checkStatus.data[0].id},
+                            dataType: 'json',
+                            success: function(result) {
+                                for (var i=0; i<result.data.total; i++) {
+                                    var str = JSON.stringify(result.data.rows[i]);
+                                    PrintArticle();
+                                    // document.body.innerHTML = qrcode.qrcode(result.data.rows[i].id, 9, "H", 4);
+                                    // setTimeout(function(){
+                                    //     window.print();
+                                    // },500);
+                                }
+                                // location.reload();
+                            }
+                        });
+
+                    }
+                }
+
+                if (name === 'delete') {
+                    if (!checkStatus.data.length) {
+                        febs.alert.warn('请选择需要删除的二维码');
+                    } else {
+                        febs.modal.confirm('删除二维码', '确定删除该二维码？', function () {
+                            var userIds = [];
+                            layui.each(checkStatus.data, function (key, item) {
+                                userIds.push(item.id)
+                            });
+                            deleteUsers(userIds.join(','));
+                        });
+                    }
+                }
+                if (name === 'reset') {
+                    if (!checkStatus.data.length) {
+                        febs.alert.warn('请选择需要重置密码的用户');
+                    } else {
+                        var usernames = [];
+                        layui.each(checkStatus.data, function (key, item) {
+                            usernames.push(item.username)
+                        });
+                        febs.post(ctx + 'user/password/reset/' + usernames.join(','), null, function () {
+                            febs.alert.success('所选用户密码已重置为1234qwer');
+                        });
+                    }
+                }
+                if (name === 'export') {
+                    var params = $.extend(getQueryParams(), {field: sortObject.field, order: sortObject.type});
+                    params.pageSize = $view.find(".layui-laypage-limits option:selected").val();
+                    params.pageNum = $view.find(".layui-laypage-em").next().html();
+                    febs.download(ctx + 'user/excel', params, '二维码信息表.xlsx');
+                }
+            },
+            options: [{
+                    name: 'delete',
+                    title: '删除二维码',
+                    perms: 'code:delete'
+             }, {
+                    name: 'print',
+                    title: '打印二维码',
+                    perms: 'code:add'
+                }]
+        });
+
+        treeSelect.render({
+            elem: $view.find('#dept'),
+            type: 'get',
+            data: ctx + 'dept/select/tree',
+            placeholder: '请选择',
+            search: false
+        });
+
+        table.on('tool(userTable)', function (obj) {
+            var data = obj.data,
+                layEvent = obj.event;
+            if (layEvent === 'detail') {
+                // febs.modal.view('二维码信息', 'sys/code/detail/' + data.id, {
+                //     area: $(window).width() <= 750 ? '95%' : '660px'
+                // });
+                openRecordDetail(data);
+            }
+            if (layEvent === 'del') {
+                febs.modal.confirm('删除二维码', '确定删除该二维码？', function () {
+                    deleteUsers(data.id);
+                });
+            }
+            if (layEvent === 'edit') {
+                febs.modal.open('修改二维码', 'sys/code/update/' + data.id, {
+                    area: $(window).width() <= 750 ? ['90%', '80%'] : ['60%', '80%'],
+                    btn: ['提交', '取消'],
+                    yes: function (index, layero) {
+                        $('#user-update').find('#submit').trigger('click');
+                    },
+                    btn2: function () {
+                        layer.closeAll();
+                    }
+                });
+            }
+        });
+
+        function openRecordDetail(data) {
+            initDetailTable(data);
+
+            layer.open({
+                type: 1,
+                title: '二维码详情列表',
+                id: 'recordDetailModal_ID',
+                area: $(window).width() <= 750 ? ['90%', '80%'] : ['60%', '80%'],
+                content: $('#recordDetailModal'),
+                btn: ['关闭'],
+                shade: 0,
+                yes: function () {
+                    layer.closeAll();
+                }
+            });
+        }
+        function initDetailTable(data) {
+            var requestParam = {};
+            requestParam.id = data.id;
+
+            febs.table.init({
+                elem: $('#recordDetailTable'),
+                id: 'recordDetailTable',
+                url: ctx + 'code/two/list',
+                where: requestParam,
+                totalRow: true,
+                page: true,
+                cols: [[
+                    {field: 'id', title: 'id', minWidth: 150},
+                    {field: 'createDate', title: '创建时间', minWidth: 180, sort: true},
+                    {title: '状态', templet: '#code-status'}
+                ]]
+            });
+        }
+        function initDetailCol(data) {
+            var users = data.recordUsers;
+            var cols = [];
+            cols.push({title: '局数', field: 'gameIndex', totalRowText: '合计：', align: 'center', minWidth: 100})
+            for (var i in users) {
+                var item = {};
+                item.title = users[i].userName;
+                item.field = users[i].userId;
+                item.totalRow = true;
+                item.minWidth = 100;
+                item.align = 'center';
+                cols.push(item);
+            }
+            cols.push({title: '操作', toolbar: '#record-detail-option', align: 'center', minWidth: 100})
+            return cols;
+        }
+
+        table.on('sort(userTable)', function (obj) {
+            sortObject = obj;
+            tableIns.reload({
+                initSort: obj,
+                where: $.extend(getQueryParams(), {
+                    field: obj.field,
+                    order: obj.type
+                })
+            });
+        });
+
+        $query.on('click', function () {
+            var params = $.extend(getQueryParams(), {field: sortObject.field, order: sortObject.type});
+            tableIns.reload({where: params, page: {curr: 1}});
+        });
+
+        $add.on('click', function () {
+            febs.modal.open('新增二维码', 'code/add', {
+                btn: ['提交', '重置'],
+                area: $(window).width() <= 750 ? ['90%', '80%'] : ['60%', '80%'],
+                yes: function (index, layero) {
+                    $('#user-add').find('#submit').trigger('click');
+                },
+                btn2: function () {
+                    $('#user-add').find('#reset').trigger('click');
+                    return false;
+                }
+            });
+        });
+
+        $reset.on('click', function () {
+            $searchForm[0].reset();
+            debugger
+            treeSelect.revokeNode('dept');
+            sortObject.type = 'null';
+            tableIns.reload({where: getQueryParams(), page: {curr: 1}, initSort: sortObject});
+        });
+
+        function initTable() {
+            tableIns = febs.table.init({
+                elem: $view.find('table'),
+                id: 'userTable',
+                toolbar: '#toolbarDemo',
+                url: ctx + 'code/list',
+                cols: [[
+                    {type: 'checkbox'},
+                    {field: 'name', title: '二维码名称', minWidth: 150},
+                    {field: 'reward', title: '奖金'},
+                    {field: 'number', title: '个数'},
+                    {field: 'createDate', title: '创建时间', minWidth: 180, sort: true},
+                    {title: '操作', toolbar: '#user-option', minWidth: 140}
+                ]]
+            });
+        }
+
+        function getQueryParams() {
+            var createTimeFrom,
+                createTimeTo,
+                createTime = $searchForm.find('input[name="createTime"]').val();
+            if (createTime) {
+                createTimeFrom = createTime.split(' - ')[0];
+                createTimeTo = createTime.split(' - ')[1];
+            }
+            return {
+                createTimeFrom: createTimeFrom,
+                createTimeTo: createTimeTo,
+                name: $searchForm.find('input[name="name"]').val().trim(),
+                status: $searchForm.find("select[name='status']").val(),
+                invalidate_ie_cache: new Date()
+            };
+        }
+
+        function deleteUsers(ids) {
+            febs.get(ctx + 'code/delete/' + ids, null, function () {
+                febs.alert.success('删除二维码成功');
+                $query.click();
+            });
+        }
+    })
+</script>

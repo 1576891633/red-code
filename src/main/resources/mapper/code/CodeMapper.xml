@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cc.mrbird.febs.code.mapper.CodeMapper">
+
+    <select id="findCodeCount" parameterType="cc.mrbird.febs.code.entity.Code" resultType="cc.mrbird.febs.code.entity.Count">
+        SELECT
+          count(*) giveOut,
+          sum(tc.reward) receive
+        from t_two_code tt
+        left join t_code_categroy tc on tc.id = tt.categroy_id
+        where tt.status = 1
+            <if test="startDate != null and startDate !=''">
+                And date(tt.create_date) &gt;= date(#{startDate})
+            </if>
+            <if test="endDate!= null and endDate !=''">
+                And date(tt.create_date) &lt;= date(#{endDate})
+            </if>
+    </select>
+
+    <select id="findCodeList" parameterType="string" resultType="cc.mrbird.febs.code.entity.Code">
+        SELECT
+        *
+        from t_two_code
+        where categroy_id = #{id}
+    </select>
+
+</mapper>

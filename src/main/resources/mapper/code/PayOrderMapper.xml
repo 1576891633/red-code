@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cc.mrbird.febs.code.mapper.PayOrderMapper">
+
+    <select id="findRecordList" resultType="cc.mrbird.febs.code.entity.PayOrder" parameterType="cc.mrbird.febs.code.entity.PayOrder">
+      select
+      tp.*,
+      tc.name codeName
+      from t_pay_order tp
+      left join t_two_code tt on tp.code_id = tt.id
+      left join t_code_categroy tc on tt.categroy_id = tc.id
+        where tp.status = 2
+        <if test="order.userName != null and order.userName != ''">
+            AND tp.user_name like concat('%', #{order.userName},'%')
+        </if>
+        <if test="order.codeName != null and order.codeName != ''">
+            AND tc.name like concat('%', #{order.codeName},'%')
+        </if>
+        <if test="order.status != null and order.status != ''">
+            AND tp.status = #{order.status}
+        </if>
+        <if test="order.createTimeFrom != null and order.createTimeFrom !=''">
+            And date(tp.create_date) &gt;= date(#{order.createTimeFrom})
+        </if>
+        <if test="order.createTimeTo!= null and order.createTimeTo !=''">
+            And date(tp.create_date) &lt;= date(#{order.createTimeTo})
+        </if>
+      order by tp.id desc
+    </select>
+
+</mapper>

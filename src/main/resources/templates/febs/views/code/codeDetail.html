@@ -1,0 +1,88 @@
+<style>
+    #febs-user-detail #user-img, #febs-user-detail .user-info {
+        display: inline-block;
+        float: left;
+        margin-left: 15px;
+    }
+
+    #febs-user-detail #user-img img {
+        width: 7rem;
+        margin: 10px 10px 0 20px;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+    #febs-user-detail #user-info-wrapper {
+        margin: 0 0 1rem 0;
+        display: inline-block;
+    }
+
+    #febs-user-detail .user-info div {
+        margin: 10px 15px;
+        max-width: 19rem;
+    }
+
+    #febs-user-detail #options-wrapper a {
+        padding: 4px 6px;
+        color: rgba(0, 0, 0, 0.65);
+        border: 1px solid #d9d9d9;
+        border-radius: 2px;
+    }
+
+    #febs-user-detail #options-wrapper a:hover {
+        color: #40a9ff;
+        border-color: #40a9ff;
+    }
+
+</style>
+<div class="layui-fluid" id="febs-user-detail" lay-title="个人信息">
+    <div id="user-info-wrapper">
+        <div id="user-img">
+            <img class="layui-upload-img" id="test1">
+        </div>
+        <div class="user-info">
+            <div><span class="layui-icon layui-icon-user"></span> 二维码名：
+                [[${code.name}]]
+            </div>
+            <div><span class="layui-icon layui-icon-trophy"></span> 奖金：
+                [[${code.reward}]]
+            </div>
+            <div><span class="layui-icon layui-icon-trophy"></span> 属性：
+                [[${code.property}]]
+            </div>
+            <div><span class="layui-icon layui-icon-trophy"></span> 个数：
+                [[${code.number}]]
+            </div>
+            <div><span class="layui-icon layui-icon-home"></span> 状态：
+                [[${code.status == 0?'有效':'无效'}]]
+            </div>
+            <!--<div><span class="layui-icon layui-icon-skin"></span> 内容：-->
+                <!--[[${code.content}]]-->
+            <!--</div>-->
+        </div>
+    </div>
+</div>
+<script data-th-inline="javascript">
+    layui.use(['febs', 'form', 'formSelects', 'validate', 'treeSelect', 'upload','layedit'], function () {
+        var $ = layui.$,
+            febs = layui.febs,
+            upload = layui.upload,
+            layer = layui.layer,
+            layedit = layui.layedit,
+            formSelects = layui.formSelects,
+            form = layui.form,
+            code = [[${code}]],
+            $view = $('#user-update'),
+            validate = layui.validate;
+
+        // var indexs = layedit.build('content');
+        // layedit.setContent(indexs,code.content);
+        initUserValue();
+
+        function initUserValue() {
+            if (code.url) {
+                $('#test1').attr('src', '/download/image/' + code.url);
+            }
+        }
+    });
+</script>
